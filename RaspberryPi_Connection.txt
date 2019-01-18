@@ -1,0 +1,9 @@
+# Get ip adress:
+$ ping raspberrypi.local #192.168.2.233
+
+# Start desktop
+$ ssh pi@192.168.2.233  #pw: raspberry
+$ bash desktop # tightvncserver -geometry 1600x1200
+
+# VNC using remmina
+192.168.2.233:5901
