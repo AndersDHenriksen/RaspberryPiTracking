@@ -2,7 +2,7 @@ from __future__ import print_function
 import paramiko
 from scp import SCPClient
 
-rpi_ip = "192.168.2.233"
+rpi_ip = "192.168.2.227"
 rpi_user = "pi"
 rpi_password = "raspberry"
 
@@ -40,7 +40,7 @@ def download_dir(remote_path, local_path, clear_afterwards=False):
         clear_dir(remote_path)
 
 
-def clear_dir(remote_path):
+def clear_dir(remote_path):  # ToDo currently not working
     return
     if remote_path[-1] != '/':
         remote_path += '/'
@@ -52,7 +52,7 @@ def clear_dir(remote_path):
 
 
 def sync_project():
-    local_dir = '/home/anders/Projects/RaspberryPi/'
+    local_dir = '/home/anders/Projects/RaspberryPiTracking/'
     remote_dir = '/home/pi/BallDetector'
     print("Syncing {} to {}".format(local_dir, remote_dir))
     upload_dir(local_dir, remote_dir)

@@ -8,10 +8,11 @@ except ImportError:
     print("picamera not installed")
 from time import sleep
 import numpy as np
+from threading import Lock
 
 
 class PiVideoBufferStream:
-    def __init__(self, resolution=(640, 480), framerate=90, shutter_speed=None, buffer_size=200):
+    def __init__(self, resolution=(640, 480), framerate=90, shutter_speed=None, buffer_size=300):
         self.camera = PiCamera()
         self.camera.resolution = resolution
         self.camera.framerate = framerate
@@ -55,48 +56,55 @@ class RingBuffer(PiRGBAnalysis):
         super(RingBuffer, self).__init__(camera)
         self.camera = camera
         self.buffer_size = buffer_size
+        self.thread_lock = Lock()
         self._init_ring_buffer()
 
     def analyze(self, array):
         self._enqueue_frame(array)
 
     def _init_ring_buffer(self):
-        if not hasattr(self, 'frame_ring_buffer'):
-            resolution = self.camera.resolution
-            self.frame_ring_buffer = np.zeros((self.buffer_size, resolution[1], resolution[0], 3), dtype=np.uint8)
-        self.insert_idx = 0
-        self.index_ring_buffer = np.zeros(self.buffer_size, dtype=np.int)
-        self.newest_frame_buffer_index = 0
-        self.newest_frame_yielded = True
+        is_recording = self.camera.recording
+        if is_recording:
+            self.camera.stop_recording()
+        with self.thread_lock:
+            if not hasattr(self, 'frame_ring_buffer'):
+                resolution = self.camera.resolution
+                self.frame_ring_buffer = np.zeros((self.buffer_size, resolution[1], resolution[0], 3), dtype=np.uint8)
+            self.insert_idx = 0
+            self.index_ring_buffer = np.zeros(self.buffer_size, dtype=np.int)
+            self.newest_frame_buffer_index = 0
+            self.newest_frame_yielded = True
+        if is_recording:
+            self.camera.start_recording(self, format='bgr')
 
     def _enqueue_frame(self, array):
-        # print("Enquing frame")
-        insert_idx = (self.insert_idx + 1) % self.buffer_size # ToDo replace with thread lock
-        self.newest_frame_buffer_index += 1
-        self.index_ring_buffer[insert_idx] = self.newest_frame_buffer_index + 1
-        self.frame_ring_buffer[insert_idx] = array
-        self.insert_idx = insert_idx
-        self.newest_frame_yielded = False
+        with self.thread_lock:
+            insert_idx = (self.insert_idx + 1) % self.buffer_size # ToDo replace with thread lock
+            self.newest_frame_buffer_index += 1
+            self.index_ring_buffer[insert_idx] = self.newest_frame_buffer_index + 1
+            self.frame_ring_buffer[insert_idx] = array
+            self.insert_idx = insert_idx
+            self.newest_frame_yielded = False
 
     def read_new(self):
-        # print("Reading frame")
         while self.newest_frame_yielded:
             sleep(0.01)
-            # print("Waiting")
-        self.newest_frame_yielded = True
-        yeild_idx = self.insert_idx
-        prior_idx = (yeild_idx - 1) % self.buffer_size
-        return self.index_ring_buffer[yeild_idx], self.frame_ring_buffer[yeild_idx], self.frame_ring_buffer[prior_idx]
+        with self.thread_lock:
+            self.newest_frame_yielded = True
+            yeild_idx = self.insert_idx
+            prior_idx = (yeild_idx - 1) % self.buffer_size
+            return self.index_ring_buffer[yeild_idx], self.frame_ring_buffer[yeild_idx].copy(), self.frame_ring_buffer[prior_idx].copy()
 
     def read_idx(self, idx):
-        yeild_idx = np.flatnonzero(idx == self.index_ring_buffer)
-        if not yeild_idx.size:
-            return None, None, None
-        yeild_idx = yeild_idx[0]
-        prior_idx = (yeild_idx - 1) % self.buffer_size
-        if self.index_ring_buffer[yeild_idx] != self.index_ring_buffer[prior_idx] + 1:
-            return None, None, None
-        return self.index_ring_buffer[yeild_idx], self.frame_ring_buffer[yeild_idx], self.frame_ring_buffer[prior_idx]
+        with self.thread_lock:
+            yeild_idx = np.flatnonzero(idx == self.index_ring_buffer)
+            if not yeild_idx.size:
+                return None, None, None
+            yeild_idx = yeild_idx[0]
+            prior_idx = (yeild_idx - 1) % self.buffer_size
+            if self.index_ring_buffer[yeild_idx] != self.index_ring_buffer[prior_idx] + 1:
+                return None, None, None
+            return self.index_ring_buffer[yeild_idx], self.frame_ring_buffer[yeild_idx].copy(), self.frame_ring_buffer[prior_idx].copy()
 
     def discard_all_frames(self):
         self._init_ring_buffer()

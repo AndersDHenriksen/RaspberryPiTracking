@@ -4,7 +4,7 @@ import VisionToolsMini as vt
 from time import sleep, time
 
 h = 0
-pixels_per_meter = 463  # at camera height 2.87 m
+pixels_per_meter = 463 / 3  # at camera height 2.87 m #TODO remove the factor 3. This is temp for table level ball detection
 
 fps = 90
 g = 9.82
@@ -30,6 +30,14 @@ def ball_finder(current_image, prior_image):
     # Detect difference
     difference_bgr = cv2.subtract(current_image, prior_image)
     difference = cv2.cvtColor(difference_bgr, cv2.COLOR_BGR2GRAY)
+
+    # Simple dummy check that triggers just om image motion
+    if 0:
+        mean_diff = difference.mean()
+        if mean_diff > 7:
+            return (int(mean_diff), int(mean_diff/2))
+        else:
+            return None
 
     # Find ball u coordinates
     ball_u_start, ball_u_end, threshold_u = find_ball_1d_limits(difference, axis=0)
@@ -105,6 +113,8 @@ def analyze_video(video):
             continue
         ball_track_iuv.append([idx, ball_location_uv[0], ball_location_uv[1]])
 
+        # video.camera.stop_recording() Maybe this will help to memory error?
+
         # Backtrack
         backtrack_idx = idx
         while True:
@@ -121,7 +131,7 @@ def analyze_video(video):
             forward_idx += 1
             attemps = 0
             current_frame = None
-            while attemps < 5:
+            while attemps < 5 and current_frame is None:
                 _, current_frame, prior_frame = video.read_idx(forward_idx)
                 attemps += 1
                 if current_frame is None:
@@ -162,7 +172,10 @@ def start_rpi_tracker(debug=False):
         Tracker.ball_finder = debug_ball_finder_decorator(Tracker.ball_finder)
 
     video_stream = PiVideoBufferStream()
-    analyze_video(video_stream)
+    try:
+        analyze_video(video_stream)
+    finally:
+        video_stream.stop()
 
 
 def debug_read_decorator(func):
