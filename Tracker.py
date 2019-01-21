@@ -5,6 +5,7 @@ from time import sleep, time
 
 h = 0
 pixels_per_meter = 463 / 3  # at camera height 2.87 m #TODO remove the factor 3. This is temp for table level ball detection
+save_captured_tracks = True
 
 fps = 90
 g = 9.82
@@ -159,6 +160,8 @@ def analyze_video(video):
         print("Ball velocity: {:.1f} m/s".format(velocity_ms))
         print("Ball carry: {:.1f} m".format(distance_max_m))
         print("=====================================================")
+        if save_captured_tracks:
+            video.save_track(ball_track_iuv[0, 0] - 2, ball_track_iuv[-1, 0] + 2)
         video.reset_buffer()
 
 

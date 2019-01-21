@@ -6,9 +6,29 @@ try:
 except ImportError:
     PiRGBAnalysis = object
     print("picamera not installed")
-from time import sleep
-import numpy as np
+from time import sleep, strftime
 from threading import Lock
+import functools
+import numpy as np
+import DataTools
+
+
+def temp_disable_video(func):
+    @functools.wraps(func)
+    def wrapper(self, *args, **kwargs):
+        # Disable camera
+        is_recording = self.camera.recording
+        if is_recording:
+            self.camera.stop_recording()
+
+        value = func(self, *args, **kwargs)
+
+        # Enable camera
+        if is_recording:
+            self.start_stream()
+
+        return value
+    return wrapper
 
 
 class PiVideoBufferStream:
@@ -23,8 +43,7 @@ class PiVideoBufferStream:
         self.ring_buffer = RingBuffer(self.camera, buffer_size)
 
     def start(self):
-        self.camera.start_recording(self.ring_buffer, format="bgr")
-        # camera.wait_recording(1)
+        self.ring_buffer.start_stream()
 
     def record_full_buffer(self):
         self.start()
@@ -46,6 +65,11 @@ class PiVideoBufferStream:
         self.ring_buffer.discard_all_frames()
         del self.ring_buffer
 
+    def save_track(self, first_idx, last_idx):
+        print("Saving video")
+        idxs = np.arange(first_idx, last_idx + 1)
+        self.ring_buffer.save_video(idxs)
+
     def stop(self):
         self.camera.stop_recording()
         self.camera.close()
@@ -62,10 +86,8 @@ class RingBuffer(PiRGBAnalysis):
     def analyze(self, array):
         self._enqueue_frame(array)
 
+    @temp_disable_video
     def _init_ring_buffer(self):
-        is_recording = self.camera.recording
-        if is_recording:
-            self.camera.stop_recording()
         with self.thread_lock:
             if not hasattr(self, 'frame_ring_buffer'):
                 resolution = self.camera.resolution
@@ -74,8 +96,6 @@ class RingBuffer(PiRGBAnalysis):
             self.index_ring_buffer = np.zeros(self.buffer_size, dtype=np.int)
             self.newest_frame_buffer_index = 0
             self.newest_frame_yielded = True
-        if is_recording:
-            self.camera.start_recording(self, format='bgr')
 
     def _enqueue_frame(self, array):
         with self.thread_lock:
@@ -92,7 +112,7 @@ class RingBuffer(PiRGBAnalysis):
             self.newest_frame_yielded = True
             yeild_idx = self.insert_idx
             prior_idx = (yeild_idx - 1) % self.buffer_size
-            return self.index_ring_buffer[yeild_idx], self.frame_ring_buffer[yeild_idx].copy(), self.frame_ring_buffer[prior_idx].copy()
+            return self.index_ring_buffer[yeild_idx], self.frame_ring_buffer[yeild_idx], self.frame_ring_buffer[prior_idx]
 
     def read_idx(self, idx):
         with self.thread_lock:
@@ -103,7 +123,16 @@ class RingBuffer(PiRGBAnalysis):
             prior_idx = (yeild_idx - 1) % self.buffer_size
             if self.index_ring_buffer[yeild_idx] != self.index_ring_buffer[prior_idx] + 1:
                 return None, None, None
-            return self.index_ring_buffer[yeild_idx], self.frame_ring_buffer[yeild_idx].copy(), self.frame_ring_buffer[prior_idx].copy()
+            return self.index_ring_buffer[yeild_idx], self.frame_ring_buffer[yeild_idx], self.frame_ring_buffer[prior_idx]
+
+    @temp_disable_video
+    def save_video(self, idxs):
+        frame_iterator = (self.read_idx(idx)[1] for idx in idxs)
+        save_path = DataTools.rpi_video_dir + strftime("%Y%m%d_%H%M%S") + ".avi"
+        DataTools.write_video(save_path, frame_iterator, codec='H264')
+
+    def start_stream(self):
+        self.camera.start_recording(self, format="bgr")
 
     def discard_all_frames(self):
         self._init_ring_buffer()
@@ -143,4 +172,7 @@ class MockBufferStream:
 
     def reset_buffer(self):
         self.yield_idx += 10
+
+    def save_track(self):
+        pass
 

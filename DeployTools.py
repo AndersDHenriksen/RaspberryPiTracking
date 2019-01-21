@@ -1,5 +1,6 @@
 from __future__ import print_function
 import paramiko
+import time
 from scp import SCPClient
 
 rpi_ip = "192.168.2.227"
@@ -15,12 +16,23 @@ def createSSHClient(server, user, password, port=22):
     return client
 
 
-def ssh(command, silent=False):
+def kill_all_python():
+    ssh_kill_command = "ps -ef | grep 'python' | awk '{print $2}' | xargs sudo kill"
+    ssh(ssh_kill_command, silent=True)
+
+
+def ssh(command, silent=False, keep_alive_duration=None):
     ssh = createSSHClient(rpi_ip, rpi_user, rpi_password)
     ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command(command)
     if silent:
         return ssh_stdin, ssh_stdout, ssh_stderr
-    for name, stream in zip(["stdin", "stdout", "stderr"], [ssh_stdin, ssh_stdout, ssh_stderr]):
+    start_time = time.time()
+    print("stdout:")
+    for line in ssh_stdout:
+        print(line.rstrip())
+        if keep_alive_duration is not None and time.time() - start_time > keep_alive_duration:
+            ssh.close()
+    for name, stream in zip(["stdin", "stderr"], [ssh_stdin, ssh_stderr]):
         if stream.readable():
             print(name + ":")
             print(stream.read())
