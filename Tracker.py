@@ -161,7 +161,7 @@ def analyze_video(video):
         print("Ball carry: {:.1f} m".format(distance_max_m))
         print("=====================================================")
         if save_captured_tracks:
-            video.save_track(ball_track_iuv[0, 0] - 2, ball_track_iuv[-1, 0] + 2)
+            video.save_track(ball_track_iuv[0, 0] - 10, ball_track_iuv[-1, 0] + 10)
         video.reset_buffer()
 
 

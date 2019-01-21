@@ -52,15 +52,14 @@ def download_dir(remote_path, local_path, clear_afterwards=False):
         clear_dir(remote_path)
 
 
-def clear_dir(remote_path):  # ToDo currently not working
-    return
+def clear_dir(remote_path):
     if remote_path[-1] != '/':
         remote_path += '/'
     ssh = createSSHClient(rpi_ip, rpi_user, rpi_password)
-    sftp = ssh.open_sftp()
-    files_to_remove = sftp.listdir(path=remote_path)
-    for file in files_to_remove:
-        sftp.remove(remote_path + file)
+    with ssh.open_sftp() as sftp:
+        files_to_remove = sftp.listdir(path=remote_path)
+        for delete_file in files_to_remove:
+            sftp.remove(remote_path + delete_file)
 
 
 def sync_project():
