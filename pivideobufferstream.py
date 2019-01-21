@@ -79,11 +79,10 @@ class RingBuffer(PiRGBAnalysis):
 
     def _enqueue_frame(self, array):
         with self.thread_lock:
-            insert_idx = (self.insert_idx + 1) % self.buffer_size # ToDo replace with thread lock
+            self.insert_idx = (self.insert_idx + 1) % self.buffer_size
             self.newest_frame_buffer_index += 1
-            self.index_ring_buffer[insert_idx] = self.newest_frame_buffer_index + 1
-            self.frame_ring_buffer[insert_idx] = array
-            self.insert_idx = insert_idx
+            self.index_ring_buffer[self.insert_idx] = self.newest_frame_buffer_index + 1
+            self.frame_ring_buffer[self.insert_idx] = array
             self.newest_frame_yielded = False
 
     def read_new(self):

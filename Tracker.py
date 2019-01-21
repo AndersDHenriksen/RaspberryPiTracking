@@ -54,7 +54,8 @@ def ball_finder(current_image, prior_image):
     difference_ball = difference_reduced[ball_v_start:ball_v_end, :]
     threshold_min = min(threshold_u, threshold_v)
     bw_ball = difference_ball > threshold_min
-    if vt.bw_area_filter(bw_ball, output='area') < 4 * expected_area / 5:
+    # Originally used vt.bw_area_filter(bw_ball, output='area') but this caused memory error
+    if bw_ball.sum() < 4 * expected_area / 5:
         return None
 
     # 2. sanity thick middle
@@ -112,8 +113,6 @@ def analyze_video(video):
         if ball_location_uv is None:
             continue
         ball_track_iuv.append([idx, ball_location_uv[0], ball_location_uv[1]])
-
-        # video.camera.stop_recording() Maybe this will help to memory error?
 
         # Backtrack
         backtrack_idx = idx

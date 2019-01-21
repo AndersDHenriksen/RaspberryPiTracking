@@ -147,6 +147,7 @@ def bw_reconstruct(marker, mask):
     out_mask = isin(labels, labels_to_keep)
     return out_mask
 
+
 def cc_masks(mask):
     """
     Extract each connected component (cc) in its own image and return the array of these images
