@@ -7,3 +7,9 @@ $ bash desktop # tightvncserver -geometry 1600x1200
 
 # VNC using remmina
 192.168.2.233:5901
+
+# If no HDMI output
+# ssh -> sudo nano /boot/config.txt -> hdmi_safe=1+
+
+# If no wifi
+$ sudo raspi-config
