@@ -3,7 +3,7 @@ import paramiko
 import time
 from scp import SCPClient
 
-rpi_ip = "192.168.2.227"
+rpi_ip = "192.168.16.118"
 rpi_user = "pi"
 rpi_password = "raspberry"
 
@@ -63,7 +63,7 @@ def clear_dir(remote_path):
 
 
 def sync_project():
-    local_dir = '/home/anders/Projects/RaspberryPiTracking/'
+    local_dir = '/home/ahe/Projects/RaspberryPiTracking/'
     remote_dir = '/home/pi/BallDetector'
     print("Syncing {} to {}".format(local_dir, remote_dir))
     upload_dir(local_dir, remote_dir)
