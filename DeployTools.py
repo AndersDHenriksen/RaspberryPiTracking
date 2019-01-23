@@ -92,7 +92,7 @@ def clear_dir(remote_path):
 
 
 def sync_project():
-    local_dir = '/home/ahe/Projects/RaspberryPiTracking/'
+    local_dir = home() + '/Projects/RaspberryPiTracking/'
     remote_dir = '/home/pi/BallDetector'
     print("Syncing {} to {}".format(local_dir, remote_dir))
     upload_dir(local_dir, remote_dir, recursive=False)
