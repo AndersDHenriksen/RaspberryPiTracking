@@ -145,6 +145,8 @@ class MockBufferStream:
     def __init__(self, data_path):
         if data_path.endswith('.npy'):
             self.frames = np.load(data_path)
+        elif data_path.endswith('.raw'):
+            self.frames = np.fromfile(data_path, dtype=np.uint8).reshape((-1, 480, 640, 3))
         elif data_path.endswith('.avi'):
             import cv2
             frames, frame_available = [], True

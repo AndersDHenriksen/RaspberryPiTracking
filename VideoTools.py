@@ -46,22 +46,9 @@ def acquire_video_clip(duration=8, compress=True):
         if compress:
             camera.start_recording('/home/pi/Videos/video_' + time_stamp() + '.avi', format='h264')
         else:
-            camera.start_recording('/home/pi/Videos/video_' + time_stamp() + '.npy', format='bgr')  #TODO Test this
+            camera.start_recording('/home/pi/Videos/video_' + time_stamp() + '.raw', format='bgr')
         camera.wait_recording(duration)
         camera.stop_recording()
-        return
-        # Initialize array
-        frames_shape = (int(duration * camera.framerate), 480, 640, 3)
-        frames = np.empty(np.prod(frames_shape), dtype=np.uint8)
-        # Acquire video
-        camera.start_recording(frames, format='bgr')
-        camera.wait_recording(duration)
-        camera.stop_recording()
-        print("Saving video ... ")
-        frames = frames.reshape(frames_shape)
-        save_dir = '/home/pi/NumpyData/' + time_stamp()
-        os.makedirs(save_dir)
-        np.save(save_dir + '/data.npy', frames)
 
 
 def acquire_numpy_array_old(duration=8):

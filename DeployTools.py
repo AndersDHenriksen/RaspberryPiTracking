@@ -37,8 +37,9 @@ def ssh(command, silent=False, keep_alive_duration=None):
     ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command(command, get_pty=True)
     if silent:
         return ssh_stdin, ssh_stdout, ssh_stderr
-    t = threading.Thread(target=close_ssh_when_time, args=(ssh, keep_alive_duration), daemon=True)
-    t.start()
+    if keep_alive_duration:
+        t = threading.Thread(target=close_ssh_when_time, args=(ssh, keep_alive_duration), daemon=True)
+        t.start()
     print("stdout:")
     for line in ssh_stdout:
         print(line.rstrip())
@@ -47,7 +48,8 @@ def ssh(command, silent=False, keep_alive_duration=None):
             stream_message = stream.read()
             if stream_message:
                 print(name + ":\n" + stream_message)
-    t.join()
+    if keep_alive_duration:
+        t.join()
 
 
 def upload_dir_simple(local_path, remote_path, recursive=True):
