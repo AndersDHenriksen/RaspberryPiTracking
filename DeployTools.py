@@ -34,7 +34,7 @@ def home():
 
 def ssh(command, silent=False, keep_alive_duration=None):
     ssh = createSSHClient(rpi_ip, rpi_user, rpi_password)
-    ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command(command)
+    ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command(command, get_pty=True)
     if silent:
         return ssh_stdin, ssh_stdout, ssh_stderr
     t = threading.Thread(target=close_ssh_when_time, args=(ssh, keep_alive_duration), daemon=True)
@@ -44,8 +44,9 @@ def ssh(command, silent=False, keep_alive_duration=None):
         print(line.rstrip())
     for name, stream in zip(["stdin", "stderr"], [ssh_stdin, ssh_stderr]):
         if stream.readable():
-            print(name + ":")
-            print(stream.read())
+            stream_message = stream.read()
+            if stream_message:
+                print(name + ":\n" + stream_message)
     t.join()
 
 
@@ -67,7 +68,7 @@ def upload_dir(local_path, remote_path, recursive=True, hidden_files=False):
                     folders.append(element)
                 continue
             scp.put(files=os.path.join(local_path, element), remote_path=remote_path, recursive=False)
-    [upload_dir(os.path.join(local_path, f), os.path.join(remote_path, f), recursive, hidden_files)  for f in folders]
+    [upload_dir(os.path.join(local_path, f), os.path.join(remote_path, f), recursive, hidden_files) for f in folders]
 
 
 def download_dir(remote_path, local_path, clear_afterwards=False):
