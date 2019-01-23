@@ -56,7 +56,7 @@ def ball_finder(current_image, prior_image):
     threshold_min = min(threshold_u, threshold_v)
     bw_ball = difference_ball > threshold_min
     # Originally used vt.bw_area_filter(bw_ball, output='area') but this caused memory error
-    if bw_ball.sum() < 4 * expected_area / 5:
+    if min(bw_ball.shape) < 11 or bw_ball.sum() < 4 * expected_area / 5:
         return None
 
     # 2. sanity thick middle
@@ -145,11 +145,14 @@ def analyze_video(video):
         if len(ball_track_iuv) < 3:
             continue
         ball_track_iuv = np.array(ball_track_iuv)
+        du = np.diff(ball_track_iuv[:, 1])
+        if du.mean() < 5 or du.min() < 2:
+            continue
         delta_iuv = ball_track_iuv[-1, :] - ball_track_iuv[0, :]
         theta_rad = np.arctan2(-delta_iuv[2], delta_iuv[1])  # Positive theta means ball flying toward top pixel row
         velocity_ms = np.linalg.norm(delta_iuv[1:]) / delta_iuv[0] * fps / pixels_per_meter
         distance_max_m = distance(velocity_ms)
-        if theta_rad > np.pi / 2 or theta_rad < - np.pi / 2:
+        if theta_rad > np.pi / 3 or theta_rad < - np.pi / 3:
             print("Club backswing detected")
             video.reset_buffer()
             continue
@@ -200,7 +203,8 @@ def debug_ball_finder_decorator(func):
 
 if __name__ == "__main__":
     from pivideobufferstream import MockBufferStream
-    data_path = '/home/anders/RaspberryPi/NumpyData/20190115_084807/data.npy'
+    # data_path = '/home/anders/RaspberryPi/NumpyData/20190115_084807/data.npy'
+    data_path = '/home/ahe/GoogleDrive/TrackMan/04. RangeShortShots/20190123_075927.avi'
     video = MockBufferStream(data_path)
     try:
         analyze_video(video)

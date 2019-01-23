@@ -145,6 +145,15 @@ class MockBufferStream:
     def __init__(self, data_path):
         if data_path.endswith('.npy'):
             self.frames = np.load(data_path)
+        elif data_path.endswith('.avi'):
+            import cv2
+            frames, frame_available = [], True
+            cap = cv2.VideoCapture(data_path)
+            while cap.isOpened() and frame_available:
+                frame_available, frame = cap.read()
+                frames.append(frame)
+            cap.release()
+            self.frames = np.array(frames[:-1])
         else:
             raise NotImplementedError
         self.index = np.arange(self.frames.shape[0])
@@ -173,6 +182,6 @@ class MockBufferStream:
     def reset_buffer(self):
         self.yield_idx += 10
 
-    def save_track(self):
+    def save_track(self, *args, **kwargs):
         pass
 
