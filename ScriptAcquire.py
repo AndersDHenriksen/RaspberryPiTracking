@@ -1,30 +1,38 @@
 from __future__ import print_function
 import os
 
+acquire = "video"
+
+assert acquire in ["image", "video", "numpy"]
 
 if not os.uname()[4][:3] == 'arm':
     print("1) Uploading code ...")
     import DeployTools
-    DeployTools.sync_project()
+    try:
+        DeployTools.sync_project()
+    except:
+        pass
 
     print("2) Acquiring data ...")
     ssh_command = "python3 ~/BallDetector/ScriptAcquire.py"
     DeployTools.ssh(ssh_command)
 
     print("3) Download data ...")
-    DeployTools.download_dir("/home/pi/NumpyData", "/home/anders/RaspberryPi", clear_afterwards=True)
-    # DeployTools.download_dir("/home/pi/Pictures", "/home/anders/RaspberryPi", clear_afterwards=True)
-    # DeployTools.download_dir("/home/pi/Videos", "/home/anders/RaspberryPi", clear_afterwards=True)
-    # DeployTools.download_dir("/home/pi/BallsTracked", "/home/anders/RaspberryPi", clear_afterwards=True)
+    rpi_data_folder = {'image': "/home/pi/Pictures", "video": "/home/pi/Videos", "numpy": "/home/pi/NumpyData"}
+    DeployTools.download_dir(rpi_data_folder[acquire], "/home/anders/RaspberryPi", clear_afterwards=True)
 
-    print("4) Processing data ...")
-    import DataTools
-    DataTools.create_video()
+    if acquire == "numpy":
+        print("4) Processing data ...")
+        import DataTools
+        DataTools.create_video()
 
     print("5) Done")
 
 else:
     import VideoTools
-    VideoTools.acquire_numpy_array()
-    # VideoTools.acquire_video_clip(compress=False)
-    # VideoTools.acquire_image()
+    if acquire == 'image':
+        VideoTools.acquire_image()
+    elif acquire == 'video':
+        VideoTools.acquire_video_clip(compress=True)
+    elif acquire == 'numpy':
+        VideoTools.acquire_numpy_array()

@@ -3,7 +3,6 @@ import CameraTools
 from picamera import PiCamera
 from time import sleep, strftime, time
 import numpy as np
-from imutils.video.pivideostream import PiVideoStream
 import os
 
 def time_stamp():
@@ -14,9 +13,10 @@ def initiate_camera():
     resolution = (640, 480)
     framerate = 90
     shutter_speed = 4000
+    sensor_mode = 7
 
-    camera = PiCamera(resolution=resolution, framerate=framerate)
-    camera.shutter_speed = shutter_speed
+    camera = PiCamera(resolution=resolution, framerate=framerate, sensor_mode=sensor_mode)
+    # camera.shutter_speed = shutter_speed
 
     camera.start_preview()
     sleep(2)  # Give time to auto gain
@@ -63,6 +63,7 @@ def acquire_video_clip(duration=8, compress=True):
 
 
 def acquire_numpy_array_old(duration=8):
+    from imutils.video.pivideostream import PiVideoStream
     fps = 90
     vs = PiVideoStream(resolution=(640, 480), framerate=fps).start()
     vs.camera.shutter_speed = 4000
