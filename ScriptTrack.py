@@ -12,7 +12,7 @@ if not os.uname()[4][:3] == 'arm':
     DeployTools.ssh(ssh_command, keep_alive_duration=20)
 
     print("3) Download data ...")
-    DeployTools.download_dir("/home/pi/BallsTracked", DeployTools.home + "/RaspberryPi", clear_afterwards=True)
+    DeployTools.download_dir("/home/pi/BallsTracked", DeployTools.home() + "/RaspberryPi", clear_afterwards=True)
 
 else:
     import Tracker

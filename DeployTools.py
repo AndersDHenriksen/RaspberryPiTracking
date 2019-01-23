@@ -27,7 +27,7 @@ def kill_all_python():
     ssh_kill_command = "ps -ef | grep 'python' | awk '{print $2}' | xargs sudo kill"
     ssh(ssh_kill_command, silent=True)
 
-@property
+
 def home():
     return os.path.expanduser("~")
 

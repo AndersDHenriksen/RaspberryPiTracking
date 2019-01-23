@@ -16,7 +16,7 @@ if not os.uname()[4][:3] == 'arm':
 
     print("3) Download data ...")
     rpi_data_folder = {'image': "/home/pi/Pictures", "video": "/home/pi/Videos", "numpy": "/home/pi/NumpyData"}
-    DeployTools.download_dir(rpi_data_folder[acquire], DeployTools.home + "/RaspberryPi", clear_afterwards=True)
+    DeployTools.download_dir(rpi_data_folder[acquire], DeployTools.home() + "/RaspberryPi", clear_afterwards=True)
 
     if acquire == "numpy":
         print("4) Processing data ...")
