@@ -44,10 +44,12 @@ def acquire_video_clip(duration=8, compress=True):
     with initiate_camera() as camera:
         print("Acquiring video ... ")
         if compress:
-            camera.start_recording('/home/pi/Videos/video_' + time_stamp() + '.h264')
-            camera.wait_recording(duration)
-            camera.stop_recording()
-            return
+            camera.start_recording('/home/pi/Videos/video_' + time_stamp() + '.avi', format='h264')
+        else:
+            camera.start_recording('/home/pi/Videos/video_' + time_stamp() + '.npy', format='bgr')  #TODO Test this
+        camera.wait_recording(duration)
+        camera.stop_recording()
+        return
         # Initialize array
         frames_shape = (int(duration * camera.framerate), 480, 640, 3)
         frames = np.empty(np.prod(frames_shape), dtype=np.uint8)

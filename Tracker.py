@@ -4,7 +4,7 @@ import VisionToolsMini as vt
 from time import sleep, time
 
 h = 0
-pixels_per_meter = 463 / 3  # at camera height 2.87 m #TODO remove the factor 3. This is temp for table level ball detection
+pixels_per_meter = 463  # at camera height 2.87 m
 save_captured_tracks = True
 
 fps = 90
@@ -204,7 +204,7 @@ def debug_ball_finder_decorator(func):
 if __name__ == "__main__":
     from pivideobufferstream import MockBufferStream
     # data_path = '/home/anders/RaspberryPi/NumpyData/20190115_084807/data.npy'
-    data_path = '/home/ahe/GoogleDrive/TrackMan/04. RangeShortShots/20190123_075927.avi'
+    data_path = '/home/ahe/GoogleDrive/TrackMan/04. RangeShortShots/video_20190123_094456.avi'
     video = MockBufferStream(data_path)
     try:
         analyze_video(video)
