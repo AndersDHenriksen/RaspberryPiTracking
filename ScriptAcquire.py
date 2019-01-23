@@ -30,6 +30,6 @@ else:
     if acquire == 'image':
         VideoTools.acquire_image()
     elif acquire == 'video':
-        VideoTools.acquire_video_clip(compress=True)
+        VideoTools.acquire_video_clip(compress=False)  #ToDo this seems to fails if compress=True
     elif acquire == 'numpy':
         VideoTools.acquire_numpy_array()

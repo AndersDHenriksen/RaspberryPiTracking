@@ -158,6 +158,7 @@ class MockBufferStream:
             self.frames = np.array(frames[:-1])
         else:
             raise NotImplementedError
+        assert self.frames.size
         self.index = np.arange(self.frames.shape[0])
         self.yield_idx = 1
 

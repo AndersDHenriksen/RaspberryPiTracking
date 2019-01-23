@@ -12,6 +12,7 @@ g = 9.82
 expected_ball_width = int(0.043 * pixels_per_meter)
 expected_area = int(np.pi / 4 * expected_ball_width ** 2)
 
+
 def distance(v):
     if h == 0:
         d = v ** 2 / g
@@ -203,7 +204,6 @@ def debug_ball_finder_decorator(func):
 
 if __name__ == "__main__":
     from pivideobufferstream import MockBufferStream
-    # data_path = '/home/anders/RaspberryPi/NumpyData/20190115_084807/data.npy'
     data_path = '/home/ahe/GoogleDrive/TrackMan/04. RangeShortShots/video_20190123_094456.avi'
     video = MockBufferStream(data_path)
     try:
