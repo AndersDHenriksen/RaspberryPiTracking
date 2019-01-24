@@ -33,6 +33,7 @@ def initiate_camera(resolution=None, fps=None, shutter_speed=None, sensor_mode=N
 
     print(CameraTools.get_camera_settings(camera))
 
+    CameraTools.get_camera_settings(camera)
     return camera
     # ToDo consider not stopping camera and storing it, maybe as function attribute or through decorator
 

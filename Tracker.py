@@ -78,7 +78,7 @@ def ball_finder(current_image, prior_image):
     if np.std(track_widths) > 2.5:
         return None
     return (ball_u_start + ball_u_end)/2, (ball_v_start + ball_v_end)/2
-    # TODO if shutter speed is known velocity can be determined from ball size
+    # TODO if shutter speed is known velocity can be determined from ball size. Maybe if ball u > widht/3 call in ball detection directly
 
 
 def find_ball_1d_limits(difference, axis):
