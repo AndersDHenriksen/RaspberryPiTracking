@@ -128,7 +128,7 @@ class RingBuffer(PiRGBAnalysis):
     @temp_disable_video
     def save_video(self, idxs):
         frame_iterator = (self.read_idx(idx)[1] for idx in idxs)
-        save_path = DataTools.rpi_video_dir + strftime("%Y%m%d_%H%M%S") + ".avi"
+        save_path = DataTools.rpi_video_dir + strftime("%Y%m%d_%H%M%S") + ".mp4"
         DataTools.write_video(save_path, frame_iterator, codec='H264')
 
     def start_stream(self):
@@ -147,7 +147,7 @@ class MockBufferStream:
             self.frames = np.load(data_path)
         elif data_path.endswith('.raw'):
             self.frames = np.fromfile(data_path, dtype=np.uint8).reshape((-1, 480, 640, 3))
-        elif data_path.endswith('.avi'):
+        elif data_path.endswith('.mp4'):
             import cv2
             frames, frame_available = [], True
             cap = cv2.VideoCapture(data_path)

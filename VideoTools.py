@@ -53,11 +53,21 @@ def acquire_video_clip(duration=8, compress=True):
     with initiate_camera() as camera:
         print("Acquiring video ... ")
         if compress:
-            camera.start_recording('/home/pi/Videos/video_' + time_stamp() + '.avi', format='h264')
+            h264_stream = '/home/pi/Videos/video_' + time_stamp() + '.h264'
+            camera.start_recording(h264_stream, format='h264')
         else:
             camera.start_recording('/home/pi/Videos/video_' + time_stamp() + '.raw', format='bgr')
         camera.wait_recording(duration)
         camera.stop_recording()
+        if not compress:
+            return
+        # Wrap h264 stream to mp4 container
+        print("Containerizing video ...")
+        import subprocess
+        mp4_container = h264_stream[:-4] + 'mp4'
+        ffmpeg_command = 'ffmpeg -r 90 -i "{}" -c:v copy -f mp4 "{}"'.format(h264_stream, mp4_container)
+        subprocess.call(ffmpeg_command, shell=True)
+        os.remove(h264_stream)
 
 
 def acquire_numpy_array_old(duration=8):

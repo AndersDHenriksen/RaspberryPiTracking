@@ -20,7 +20,7 @@ def create_video(local_dir=None):
         data_files = sorted(glob(local_dir + "*.npy"))
         frames = np.concatenate([np.load(data_file) for data_file in data_files])
 
-    write_video(local_dir + 'video.avi', frames)
+    write_video(local_dir + 'video.mp4', frames)
 
 
 def write_video(save_path, frames_iterator, codec='XVID'):
