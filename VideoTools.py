@@ -9,11 +9,11 @@ def time_stamp():
     return strftime("%Y%m%d_%H%M%S")
 
 
-def initiate_camera():
-    resolution = (640, 480)
-    framerate = 90
-    shutter_speed = 4000
-    sensor_mode = 7
+def initiate_camera(resolution=None, fps=None, shutter_speed=None, sensor_mode=None):
+    resolution = resolution or (640, 480)
+    framerate = fps or 90
+    shutter_speed = shutter_speed or 4000
+    sensor_mode = sensor_mode or 7
 
     camera = PiCamera(resolution=resolution, framerate=framerate, sensor_mode=sensor_mode)
     # camera.shutter_speed = shutter_speed

@@ -9,7 +9,7 @@ if not os.uname()[4][:3] == 'arm':
 
     print("2) Acquiring data ...")
     ssh_command = "python3 ~/BallDetector/ScriptTrack.py"
-    DeployTools.ssh(ssh_command, keep_alive_duration=20)
+    DeployTools.ssh(ssh_command, keep_alive_duration=60)
 
     print("3) Download data ...")
     DeployTools.download_dir("/home/pi/BallsTracked", DeployTools.home() + "/RaspberryPi", clear_afterwards=True)

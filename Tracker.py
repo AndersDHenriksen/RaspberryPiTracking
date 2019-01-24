@@ -108,6 +108,7 @@ def find_ball_1d_limits(difference, axis):
 
 def analyze_video(video):
     video.start()
+    print("Tracker started ... ")
     while True:
         ball_track_iuv = []
         idx, current_frame, prior_frame = video.read_new()
@@ -181,6 +182,7 @@ def start_rpi_tracker(debug=False):
     try:
         analyze_video(video_stream)
     finally:
+        print("Tracker stopped.")
         video_stream.stop()
 
 

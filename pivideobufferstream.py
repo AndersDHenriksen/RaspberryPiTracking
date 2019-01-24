@@ -11,6 +11,7 @@ from threading import Lock
 import functools
 import numpy as np
 import DataTools
+import VideoTools
 
 
 def temp_disable_video(func):
@@ -33,13 +34,7 @@ def temp_disable_video(func):
 
 class PiVideoBufferStream:
     def __init__(self, resolution=(640, 480), framerate=90, shutter_speed=None, buffer_size=300):
-        self.camera = PiCamera()
-        self.camera.resolution = resolution
-        self.camera.framerate = framerate
-        if shutter_speed is not None:
-            self.camera.shutter_speed = shutter_speed
-            sleep(2)
-
+        self.camera = VideoTools.initiate_camera(resolution, framerate, shutter_speed)
         self.ring_buffer = RingBuffer(self.camera, buffer_size)
 
     def start(self):
@@ -128,7 +123,7 @@ class RingBuffer(PiRGBAnalysis):
     @temp_disable_video
     def save_video(self, idxs):
         frame_iterator = (self.read_idx(idx)[1] for idx in idxs)
-        save_path = DataTools.rpi_video_dir + strftime("%Y%m%d_%H%M%S") + ".mp4"
+        save_path = DataTools.rpi_video_dir + strftime("%Y%m%d_%H%M%S") + ".avi"  # For some reason mp4 crashes here
         DataTools.write_video(save_path, frame_iterator, codec='H264')
 
     def start_stream(self):
@@ -147,7 +142,7 @@ class MockBufferStream:
             self.frames = np.load(data_path)
         elif data_path.endswith('.raw'):
             self.frames = np.fromfile(data_path, dtype=np.uint8).reshape((-1, 480, 640, 3))
-        elif data_path.endswith('.mp4'):
+        elif data_path.endswith('.avi') or data_path.endswith('.mp4'):
             import cv2
             frames, frame_available = [], True
             cap = cv2.VideoCapture(data_path)
