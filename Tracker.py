@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 import VisionToolsMini as vt
 from time import sleep, time
+from uuid import getnode
 
 h = 0
 pixels_per_meter = 463  # at camera height 2.87 m
@@ -108,6 +109,7 @@ def find_ball_1d_limits(difference, axis):
 
 def analyze_video(video):
     video.start()
+    mac_address = getnode()
     print("Tracker started ... ")
     while True:
         ball_track_iuv = []
@@ -160,7 +162,8 @@ def analyze_video(video):
             continue
 
         print("=====================================================")
-        print("Ball detected at frame index: {:.0f}".format(ball_track_iuv[:, 0].mean()))
+        print("Ball detected for MAC-address: {}".format(mac_address))
+        print("Ball frame index: {:.0f}".format(ball_track_iuv[:, 0].mean()))
         print("Ball launch angle: {:.1f}".format(theta_rad * 180 / np.pi))
         print("Ball velocity: {:.1f} m/s".format(velocity_ms))
         print("Ball carry: {:.1f} m".format(distance_max_m))
