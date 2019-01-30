@@ -70,3 +70,5 @@ def upset_network_info():
     networkinfo_collection.update({'MacAddress': mac_address}, networkinfo, upsert=True)
 
 
+if __name__ == "__main__":
+    upset_network_info()

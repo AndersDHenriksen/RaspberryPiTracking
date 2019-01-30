@@ -77,6 +77,7 @@ class RingBuffer(PiRGBAnalysis):
         self.buffer_size = buffer_size
         self.thread_lock = Lock()
         self._init_ring_buffer()
+        self._dprior = 2
 
     def analyze(self, array):
         self._enqueue_frame(array)
@@ -106,7 +107,7 @@ class RingBuffer(PiRGBAnalysis):
         with self.thread_lock:
             self.newest_frame_yielded = True
             yeild_idx = self.insert_idx
-            prior_idx = (yeild_idx - 1) % self.buffer_size
+            prior_idx = (yeild_idx - self._dprior) % self.buffer_size
             return self.index_ring_buffer[yeild_idx], self.frame_ring_buffer[yeild_idx], self.frame_ring_buffer[prior_idx]
 
     def read_idx(self, idx):
@@ -115,8 +116,8 @@ class RingBuffer(PiRGBAnalysis):
             if not yeild_idx.size:
                 return None, None, None
             yeild_idx = yeild_idx[0]
-            prior_idx = (yeild_idx - 1) % self.buffer_size
-            if self.index_ring_buffer[yeild_idx] != self.index_ring_buffer[prior_idx] + 1:
+            prior_idx = (yeild_idx - self._dprior) % self.buffer_size
+            if self.index_ring_buffer[yeild_idx] != self.index_ring_buffer[prior_idx] + self._dprior:
                 return None, None, None
             return self.index_ring_buffer[yeild_idx], self.frame_ring_buffer[yeild_idx], self.frame_ring_buffer[prior_idx]
 
@@ -138,6 +139,7 @@ class RingBuffer(PiRGBAnalysis):
 
 class MockBufferStream:
     def __init__(self, data_path):
+        self._dprior = 2
         if data_path.endswith('.npy'):
             self.frames = np.load(data_path)
         elif data_path.endswith('.raw'):
@@ -155,7 +157,7 @@ class MockBufferStream:
             raise NotImplementedError
         assert self.frames.size
         self.index = np.arange(self.frames.shape[0])
-        self.yield_idx = 1
+        self.yield_idx = self._dprior
 
     def start(self):
         pass
@@ -173,12 +175,12 @@ class MockBufferStream:
         return self.read_idx(self.yield_idx)
 
     def read_idx(self, idx):
-        if idx < 1 or idx >= self.frames.shape[0]:
+        if idx < self._dprior or idx >= self.frames.shape[0]:
             raise StopIteration
-        return idx, self.frames[idx], self.frames[idx - 1]
+        return idx, self.frames[idx], self.frames[idx - self._dprior]
 
     def reset_buffer(self):
-        self.yield_idx += 10
+        self.yield_idx += 90
 
     def save_track(self, *args, **kwargs):
         pass
