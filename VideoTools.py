@@ -1,6 +1,9 @@
 from __future__ import print_function
 import CameraTools
-from picamera import PiCamera
+try:
+    from picamera import PiCamera
+except ImportError:
+    print("picamera not imported in VideoTools")
 from time import sleep, strftime, time
 import numpy as np
 import os
@@ -30,8 +33,6 @@ def initiate_camera(resolution=None, fps=None, shutter_speed=None, sensor_mode=N
         camera.iso = 800
         camera.exposure_compensation = 25
         sleep(2)
-
-    print(CameraTools.get_camera_settings(camera))
 
     CameraTools.get_camera_settings(camera)
     return camera

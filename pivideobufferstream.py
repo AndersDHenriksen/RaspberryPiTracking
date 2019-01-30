@@ -5,7 +5,7 @@ try:
     from picamera import PiCamera
 except ImportError:
     PiRGBAnalysis = object
-    print("picamera not installed")
+    print("picamera not imported in pivideobufferstream")
 from time import sleep, strftime
 from threading import Lock
 import functools

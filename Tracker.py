@@ -209,7 +209,7 @@ def debug_ball_finder_decorator(func):
 
 if __name__ == "__main__":
     from pivideobufferstream import MockBufferStream
-    data_path = '/home/ahe/GoogleDrive/TrackMan/04. RangeShortShots/video_20190123_094456.avi'
+    data_path = '/home/ahe/RaspberryPi/Videos/video_20190130_115548.mp4'
     video = MockBufferStream(data_path)
     try:
         analyze_video(video)
