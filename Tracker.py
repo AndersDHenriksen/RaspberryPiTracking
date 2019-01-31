@@ -145,6 +145,8 @@ def analyze_video(video):
                 break
             ball_track_iuv.append([forward_idx, ball_location_uv[0], ball_location_uv[1]])
 
+        # TODO If ball leaving image handle this
+
         # Calculate velocity
         if len(ball_track_iuv) < 3:
             continue
@@ -153,7 +155,7 @@ def analyze_video(video):
         if du.mean() < 5 or du.min() < 2:
             continue
         delta_iuv = ball_track_iuv[-1, :] - ball_track_iuv[0, :]
-        theta_rad = np.arctan2(-delta_iuv[2], delta_iuv[1])  # Positive theta means ball flying toward top pixel row
+        theta_rad = np.arctan2(delta_iuv[2], delta_iuv[1])  # Positive theta means ball flying toward bottom pixel row
         velocity_ms = np.linalg.norm(delta_iuv[1:]) / delta_iuv[0] * fps / pixels_per_meter
         distance_max_m = distance(velocity_ms)
         if theta_rad > np.pi / 3 or theta_rad < - np.pi / 3:
@@ -164,7 +166,7 @@ def analyze_video(video):
         print("=====================================================")
         print("Ball detected for MAC-address: {}".format(mac_address))
         print("Ball frame index: {:.0f}".format(ball_track_iuv[:, 0].mean()))
-        print("Ball launch angle: {:.1f}".format(theta_rad * 180 / np.pi))
+        print("Ball launch direction: {:.1f}".format(theta_rad * 180 / np.pi))
         print("Ball velocity: {:.1f} m/s".format(velocity_ms))
         print("Ball carry: {:.1f} m".format(distance_max_m))
         print("=====================================================")
