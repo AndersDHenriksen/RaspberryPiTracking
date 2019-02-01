@@ -8,18 +8,23 @@ from time import sleep, strftime, time
 import numpy as np
 import os
 
+
 def time_stamp():
     return strftime("%Y%m%d_%H%M%S")
 
 
-def initiate_camera(resolution=None, fps=None, shutter_speed=None, sensor_mode=None):
-    resolution = resolution or (640, 480)
+def initiate_camera(resolution=None, fps=None, sensor_mode=None, zoom=None, shutter_speed=None):
+    resolution = resolution or (800, 450)
     framerate = fps or 90
-    shutter_speed = shutter_speed or 4000
-    sensor_mode = sensor_mode or 7
+    sensor_mode = sensor_mode or 6
+    zoom6 = 0.5 - resolution[0] / 2560, 0.5 - resolution[1] / 1440, resolution[0] / 1280, resolution[1] / 720
+    zoom = zoom or (zoom6 if sensor_mode == 6 else (0, 0, 1, 1))
 
+    assert resolution[0] * 9 == resolution[1] * 16, "Resolution must 16:9"
     camera = PiCamera(resolution=resolution, framerate=framerate, sensor_mode=sensor_mode)
-    # camera.shutter_speed = shutter_speed
+    camera.zoom = zoom
+    if shutter_speed is not None:
+        camera.shutter_speed = shutter_speed
 
     camera.start_preview()
     sleep(2)  # Give time to auto gain
