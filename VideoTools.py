@@ -7,6 +7,7 @@ except ImportError:
 from time import sleep, strftime, time
 import numpy as np
 import os
+import functools
 
 
 def time_stamp():
@@ -42,6 +43,24 @@ def initiate_camera(resolution=None, fps=None, sensor_mode=None, zoom=None, shut
     CameraTools.get_camera_settings(camera)
     return camera
     # ToDo consider not stopping camera and storing it, maybe as function attribute or through decorator
+
+
+def temp_disable_video(func):
+    @functools.wraps(func)
+    def wrapper(self, *args, **kwargs):
+        # Disable camera
+        is_recording = self.camera.recording
+        if is_recording:
+            self.camera.stop_recording()
+
+        value = func(self, *args, **kwargs)
+
+        # Enable camera
+        if is_recording:
+            self.start_stream()
+
+        return value
+    return wrapper
 
 
 def see_preview(duration=5):

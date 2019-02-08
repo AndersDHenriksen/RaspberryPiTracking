@@ -8,32 +8,13 @@ except ImportError:
     print("picamera not imported in pivideobufferstream")
 from time import sleep, strftime
 from threading import Lock
-import functools
 import numpy as np
 import DataTools
 import VideoTools
 
 
-def temp_disable_video(func):
-    @functools.wraps(func)
-    def wrapper(self, *args, **kwargs):
-        # Disable camera
-        is_recording = self.camera.recording
-        if is_recording:
-            self.camera.stop_recording()
-
-        value = func(self, *args, **kwargs)
-
-        # Enable camera
-        if is_recording:
-            self.start_stream()
-
-        return value
-    return wrapper
-
-
 class PiVideoBufferStream:
-    def __init__(self, resolution=(640, 480), framerate=90, shutter_speed=None, buffer_size=300):
+    def __init__(self, resolution=None, framerate=None, shutter_speed=None, buffer_size=300):
         self.camera = VideoTools.initiate_camera(resolution, framerate, shutter_speed)
         self.ring_buffer = RingBuffer(self.camera, buffer_size)
 
@@ -76,13 +57,13 @@ class RingBuffer(PiRGBAnalysis):
         self.camera = camera
         self.buffer_size = buffer_size
         self.thread_lock = Lock()
-        self._init_ring_buffer()
         self._dprior = 2
+        self._init_ring_buffer()
 
     def analyze(self, array):
         self._enqueue_frame(array)
 
-    @temp_disable_video
+    @VideoTools.temp_disable_video
     def _init_ring_buffer(self):
         with self.thread_lock:
             if not hasattr(self, 'frame_ring_buffer'):
@@ -121,7 +102,11 @@ class RingBuffer(PiRGBAnalysis):
                 return None, None, None
             return self.index_ring_buffer[yeild_idx], self.frame_ring_buffer[yeild_idx], self.frame_ring_buffer[prior_idx]
 
-    @temp_disable_video
+    def current_frame_idx(self):
+        with self.thread_lock:
+            return self.newest_frame_buffer_index
+
+    @VideoTools.temp_disable_video
     def save_video(self, idxs):
         frame_iterator = (self.read_idx(idx)[1] for idx in idxs)
         save_path = DataTools.rpi_video_dir + strftime("%Y%m%d_%H%M%S") + ".avi"  # For some reason mp4 crashes here

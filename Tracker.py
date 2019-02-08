@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+import LoggingTools
 import VisionToolsMini as vt
 from time import sleep, time
 from uuid import getnode
@@ -109,70 +110,77 @@ def find_ball_1d_limits(difference, axis):
 
 def analyze_video(video):
     video.start()
-    mac_address = getnode()
+    periodic_saver = LoggingTools.PeriodicSaver(video)
+
     print("Tracker started ... ")
     while True:
-        ball_track_iuv = []
         idx, current_frame, prior_frame = video.read_new()
+        find_motion(idx, current_frame, prior_frame, video)
+        periodic_saver(idx, current_frame)
+
+
+def find_motion(idx, current_frame, prior_frame, video):
+    ball_track_iuv = []
+    ball_location_uv = ball_finder(current_frame, prior_frame)
+    if ball_location_uv is None:
+        return
+    ball_track_iuv.append([idx, ball_location_uv[0], ball_location_uv[1]])
+
+    # Backtrack
+    backtrack_idx = idx
+    while True:
+        backtrack_idx -= 1
+        _, current_frame, prior_frame = video.read_idx(backtrack_idx)
         ball_location_uv = ball_finder(current_frame, prior_frame)
         if ball_location_uv is None:
-            continue
-        ball_track_iuv.append([idx, ball_location_uv[0], ball_location_uv[1]])
+            break
+        ball_track_iuv.insert(0, [backtrack_idx, ball_location_uv[0], ball_location_uv[1]])
 
-        # Backtrack
-        backtrack_idx = idx
-        while True:
-            backtrack_idx -= 1
-            _, current_frame, prior_frame = video.read_idx(backtrack_idx)
-            ball_location_uv = ball_finder(current_frame, prior_frame)
-            if ball_location_uv is None:
-                break
-            ball_track_iuv.insert(0, [backtrack_idx, ball_location_uv[0], ball_location_uv[1]])
+    # Forward track
+    forward_idx = idx
+    while True:
+        forward_idx += 1
+        attemps = 0
+        current_frame = None
+        while attemps < 5 and current_frame is None:
+            _, current_frame, prior_frame = video.read_idx(forward_idx)
+            attemps += 1
+            if current_frame is None:
+                sleep(0.5/fps)
+        ball_location_uv = ball_finder(current_frame, prior_frame)
+        if ball_location_uv is None:
+            break
+        ball_track_iuv.append([forward_idx, ball_location_uv[0], ball_location_uv[1]])
 
-        # Forward track
-        forward_idx = idx
-        while True:
-            forward_idx += 1
-            attemps = 0
-            current_frame = None
-            while attemps < 5 and current_frame is None:
-                _, current_frame, prior_frame = video.read_idx(forward_idx)
-                attemps += 1
-                if current_frame is None:
-                    sleep(0.5/fps)
-            ball_location_uv = ball_finder(current_frame, prior_frame)
-            if ball_location_uv is None:
-                break
-            ball_track_iuv.append([forward_idx, ball_location_uv[0], ball_location_uv[1]])
+    # TODO If ball leaving image handle this
 
-        # TODO If ball leaving image handle this
-
-        # Calculate velocity
-        if len(ball_track_iuv) < 3:
-            continue
-        ball_track_iuv = np.array(ball_track_iuv)
-        du = np.diff(ball_track_iuv[:, 1])
-        if du.mean() < 5 or du.min() < 2:
-            continue
-        delta_iuv = ball_track_iuv[-1, :] - ball_track_iuv[0, :]
-        theta_rad = np.arctan2(delta_iuv[2], delta_iuv[1])  # Positive theta means ball flying toward bottom pixel row
-        velocity_ms = np.linalg.norm(delta_iuv[1:]) / delta_iuv[0] * fps / pixels_per_meter
-        distance_max_m = distance(velocity_ms)
-        if theta_rad > np.pi / 3 or theta_rad < - np.pi / 3:
-            print("Club backswing detected")
-            video.reset_buffer()
-            continue
-
-        print("=====================================================")
-        print("Ball detected for MAC-address: {}".format(mac_address))
-        print("Ball frame index: {:.0f}".format(ball_track_iuv[:, 0].mean()))
-        print("Ball launch direction: {:.1f}".format(theta_rad * 180 / np.pi))
-        print("Ball velocity: {:.1f} m/s".format(velocity_ms))
-        print("Ball carry: {:.1f} m".format(distance_max_m))
-        print("=====================================================")
-        if save_captured_tracks:
-            video.save_track(ball_track_iuv[0, 0] - 10, ball_track_iuv[-1, 0] + 10)
+    # Calculate velocity
+    if len(ball_track_iuv) < 3:
+        return
+    ball_track_iuv = np.array(ball_track_iuv)
+    du = np.diff(ball_track_iuv[:, 1])
+    if du.mean() < 5 or du.min() < 2:
+        return
+    delta_iuv = ball_track_iuv[-1, :] - ball_track_iuv[0, :]
+    theta_rad = np.arctan2(delta_iuv[2], delta_iuv[1])  # Positive theta means ball flying toward bottom pixel row
+    velocity_ms = np.linalg.norm(delta_iuv[1:]) / delta_iuv[0] * fps / pixels_per_meter
+    distance_max_m = distance(velocity_ms)
+    if theta_rad > np.pi / 3 or theta_rad < - np.pi / 3:
+        print("Club backswing detected")
         video.reset_buffer()
+        return
+
+    mac_address = getnode()
+    print("=====================================================")
+    print("Ball detected for MAC-address: {}".format(mac_address))
+    print("Ball frame index: {:.0f}".format(ball_track_iuv[:, 0].mean()))
+    print("Ball launch direction: {:.1f}".format(theta_rad * 180 / np.pi))
+    print("Ball velocity: {:.1f} m/s".format(velocity_ms))
+    print("Ball carry: {:.1f} m".format(distance_max_m))
+    print("=====================================================")
+    if save_captured_tracks:
+        video.save_track(ball_track_iuv[0, 0] - 10, ball_track_iuv[-1, 0] + 10)
+    video.reset_buffer()
 
 
 def start_rpi_tracker(debug=False):
