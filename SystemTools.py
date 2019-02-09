@@ -21,11 +21,19 @@ def get_acquire_fps(video, wait_time=5):
     return (post_idx - pre_idx) / wait_time
 
 
-def get_analysis_fps():
-    pass  # ToDo maybe PeriodicSaver should have a counter?
+def get_analysis_fps(perioddic_saver, wait_time=5):
+    pre_count = perioddic_saver.count
+    sleep(wait_time)
+    post_count = perioddic_saver.count
+    return (post_count - pre_count) / wait_time
 
 
-def get_system_info():
+def get_system_info(video=None, perioddic_saver=None):
     system_info = {'Uptime': str(timedelta(seconds=get_uptime())),
-                   "Core temperature": get_core_temp()}  # TODO expand: fps's
+                   "Core temperature": get_core_temp()}
+    if video is not None:
+        system_info.update({'Acquire FPS': get_acquire_fps(video)})
+    if perioddic_saver is not None:
+        system_info.update({'Analysis FPS': get_analysis_fps(perioddic_saver)})
+
     return system_info

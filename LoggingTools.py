@@ -6,14 +6,16 @@ from datetime import datetime, timedelta
 import CameraTools
 import SystemTools
 import json
-
+import threading
 
 class PeriodicSaver:
 
     def __init__(self, video):
         self.periodic_save_dir = '/home/pi/Logs/'
+        self.video = video
         self.camera = video.camera
         self.last_idx = 0
+        self.counter = 0
         self.next_save_time = self._get_next_save_time()
 
     def _get_next_save_time(self):
@@ -23,13 +25,18 @@ class PeriodicSaver:
         return last_save_time + timedelta(hours=.5)
 
     def __call__(self, idx, image):
+        self.counter += 1
         new_idx = idx % 1000
         skip = new_idx > self.last_idx
         self.last_idx = new_idx
         if skip or datetime.now() < self.next_save_time:
             return
 
-        # TODO spawn thread to handle save_log  # TODO is it ok not to join the thread
+        save_thread = threading.Thread(target=self._save_log, args=(image, ))
+        save_thread.start()  # TODO is it ok not to join the thread
+
+        # Update next_save_time
+        self.next_save_time + timedelta(hours=.5)
 
     def _save_log(self, image):
         print("Saving periodic log tar ...")
@@ -39,7 +46,7 @@ class PeriodicSaver:
 
         # Save json
         camera_settings = CameraTools.get_camera_settings(self.camera, silent=True)
-        system_info = SystemTools.get_system_info()
+        system_info = SystemTools.get_system_info(self.video, self)
         json_dict = {'Camera Settings': camera_settings, 'System Info': system_info}
         with open(save_path_name + '.json', 'w') as fp:
             json.dump(json_dict, fp, sort_keys=True, indent=4)
@@ -55,9 +62,3 @@ class PeriodicSaver:
         for file in existing_logs[:-50]:
             os.remove(self.periodic_save_dir + file)
 
-        # Update next_save_time
-        self.next_save_time + timedelta(hours=.5)
-
-
-def get_acquire_fps(video, wait_time=5):
-    video
