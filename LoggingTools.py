@@ -7,11 +7,14 @@ import CameraTools
 import SystemTools
 import json
 import threading
+import logging
+
 
 class PeriodicSaver:
 
     def __init__(self, video):
-        self.periodic_save_dir = '/home/pi/Logs/'
+        self.periodic_save_dir = '/home/pi/Logs/PeriodicInfo'
+        os.makedirs(self.periodic_save_dir, exist_ok=True)
         self.video = video
         self.camera = video.camera
         self.last_idx = 0
@@ -62,3 +65,9 @@ class PeriodicSaver:
         for file in existing_logs[:-50]:
             os.remove(self.periodic_save_dir + file)
 
+
+def setup_logger():
+    log_dir = "/home/pi/Log/"
+    os.makedirs(log_dir, exist_ok=True)
+    logging.basicConfig(filename=log_dir + 'tracker.log',
+                        format='%(asctime)s | %(module)s | %(levelname)s | %(message)s', datefmt='%Y-%m-%d %H:%M:%S')

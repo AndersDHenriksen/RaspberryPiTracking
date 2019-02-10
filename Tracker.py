@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+import logging
 import LoggingTools
 import VisionToolsMini as vt
 from time import sleep, time
@@ -110,6 +111,7 @@ def find_ball_1d_limits(difference, axis):
 
 def analyze_video(video):
     video.start()
+    LoggingTools.setup_logger()
     periodic_saver = LoggingTools.PeriodicSaver(video)
 
     print("Tracker started ... ")
@@ -191,9 +193,12 @@ def start_rpi_tracker(debug=False):
         PiVideoBufferStream.read_idx = debug_read_decorator(PiVideoBufferStream.read_idx)
         Tracker.ball_finder = debug_ball_finder_decorator(Tracker.ball_finder)
 
+    LoggingTools.setup_logger()
     video_stream = PiVideoBufferStream()
     try:
         analyze_video(video_stream)
+    except Exception as e:
+        logging.exception("Exception occurred")
     finally:
         print("Tracker stopped.")
         video_stream.stop()
