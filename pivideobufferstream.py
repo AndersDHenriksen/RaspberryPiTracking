@@ -57,7 +57,7 @@ class RingBuffer(PiRGBAnalysis):
         self.camera = camera
         self.buffer_size = buffer_size
         self.thread_lock = Lock()
-        self._dprior = 2
+        self._dprior = 4
         self._init_ring_buffer()
 
     def analyze(self, array):
@@ -124,7 +124,7 @@ class RingBuffer(PiRGBAnalysis):
 
 class MockBufferStream:
     def __init__(self, data_path):
-        self._dprior = 2
+        self._dprior = 4
         if data_path.endswith('.npy'):
             self.frames = np.load(data_path)
         elif data_path.endswith('.raw'):
