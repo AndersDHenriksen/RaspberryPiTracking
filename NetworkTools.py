@@ -3,6 +3,7 @@ import socket
 import struct
 from time import sleep
 import os
+import json
 
 # connection_string = "eurt=setirWyrter?tset/ten.bdognom.pcg.van5q-0retsulc-pcg@del2ebbutS:naMkcarT//:vrs+bdognom"
 connection_string = "eurt=setirWyrter&nimda=ecruoShtua&0-drahs-0retsulc-pcg=teSacilper&eurt=lss?tset/71072:ten.bdognom.pcg.van5q-20-00-drahs-0retsulc-pcg,71072:ten.bdognom.pcg.van5q-10-00-drahs-0retsulc-pcg,71072:ten.bdognom.pcg.van5q-00-00-drahs-0retsulc-pcg@del2ebbutS:naMkcarT//:bdognom"
@@ -68,6 +69,12 @@ def upset_network_info():
     networkinfo_collection = get_network_info_collection()
     networkinfo = {'MacAddress': mac_address, 'Ip': ip, 'Alive': True}
     networkinfo_collection.update({'MacAddress': mac_address}, networkinfo, upsert=True)
+
+
+def send_shot_dict(shot_dict):  # TODO finilize this
+    save_path_name = '/home/ahe/Desktop/example'
+    with open(save_path_name + '.json', 'w') as fp:
+        json.dump(shot_dict, fp, sort_keys=True, indent=4)
 
 
 if __name__ == "__main__":

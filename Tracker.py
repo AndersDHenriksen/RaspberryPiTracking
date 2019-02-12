@@ -185,10 +185,17 @@ def find_motion(idx, current_frame, prior_frame, video):
         video.reset_buffer()
         return
 
+    # Create shot json
     mac_address = getnode()
+    shot_timestamp = video.read_timestamp(ball_track_iuv[0, 0])
+    shot_dict = {'MAC-address': mac_address, 'Time of impact': shot_timestamp, 'Launch direction': theta_rad,
+                 'Ball Speed': velocity_ms, "Carry": distance_max_m}
+    shot_dict = {'RaspberryPi Info': {'MAC-address': mac_address}, 'Shot Info': {'Time of impact': shot_timestamp,
+                 'Launch direction': theta_rad, 'Ball Speed': velocity_ms, "Carry": distance_max_m}}
+
     print("=====================================================")
     print("Ball detected for MAC-address: {}".format(mac_address))
-    print("Ball frame index: {:.0f}".format(ball_track_iuv[:, 0].mean()))
+    print("Ball detection time: {}".format(shot_timestamp))
     print("Ball launch direction: {:.1f}".format(theta_rad * 180 / np.pi))
     print("Ball velocity: {:.1f} m/s".format(velocity_ms))
     print("Ball carry: {:.1f} m".format(distance_max_m))

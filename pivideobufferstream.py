@@ -8,6 +8,7 @@ except ImportError:
     print("picamera not imported in pivideobufferstream")
 from time import sleep, strftime
 from threading import Lock
+from datetime import datetime
 import numpy as np
 import DataTools
 import VideoTools
@@ -33,6 +34,9 @@ class PiVideoBufferStream:
 
     def read_idx(self, idx):
         return self.ring_buffer.read_idx(idx)
+
+    def read_timestamp(self, idx):
+        return self.ring_buffer.get_timestamp(idx)
 
     def reset_buffer(self):
         self.ring_buffer.discard_all_frames()
@@ -71,6 +75,7 @@ class RingBuffer(PiRGBAnalysis):
                 self.frame_ring_buffer = np.zeros((self.buffer_size, resolution[1], resolution[0], 3), dtype=np.uint8)
             self.insert_idx = 0
             self.index_ring_buffer = np.zeros(self.buffer_size, dtype=np.int)
+            self.timestamp_ring_buffer = self.buffer_size * [None]
             self.newest_frame_buffer_index = 0
             self.newest_frame_yielded = True
 
@@ -80,6 +85,7 @@ class RingBuffer(PiRGBAnalysis):
             self.newest_frame_buffer_index += 1
             self.index_ring_buffer[self.insert_idx] = self.newest_frame_buffer_index + 1
             self.frame_ring_buffer[self.insert_idx] = array
+            self.timestamp_ring_buffer[self.insert_idx] = datetime.now().isoformat()  # Alternative utcnow().isoformat()
             self.newest_frame_yielded = False
 
     def read_new(self):
@@ -101,6 +107,13 @@ class RingBuffer(PiRGBAnalysis):
             if self.index_ring_buffer[yeild_idx] != self.index_ring_buffer[prior_idx] + self._dprior:
                 return None, None, None
             return self.index_ring_buffer[yeild_idx], self.frame_ring_buffer[yeild_idx], self.frame_ring_buffer[prior_idx]
+
+    def get_timestamp(self, idx):
+        with self.thread_lock:
+            yeild_idx = np.flatnonzero(idx == self.index_ring_buffer)
+            if not yeild_idx.size:
+                return None
+            return self.timestamp_ring_buffer[yeild_idx[0]]
 
     def current_frame_idx(self):
         with self.thread_lock:
@@ -163,6 +176,9 @@ class MockBufferStream:
         if idx < self._dprior or idx >= self.frames.shape[0]:
             raise StopIteration
         return idx, self.frames[idx], self.frames[idx - self._dprior]
+
+    def read_timestamp(self, idx):
+        return datetime.now().isoformat()
 
     def reset_buffer(self):
         self.yield_idx += 90
