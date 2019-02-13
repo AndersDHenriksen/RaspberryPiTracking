@@ -5,9 +5,9 @@ import threading
 import paramiko
 from scp import SCPClient
 
-rpi_ip = "192.168.3.125" #"192.168.16.118"
+rpi_ip = "192.168.2.184" #"192.168.16.118"
 rpi_user = "pi"
-rpi_password = "trakcman"
+rpi_password = "trackman"
 
 
 def createSSHClient(server, user, password, port=22):

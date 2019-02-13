@@ -31,14 +31,14 @@ def initiate_camera(resolution=None, fps=None, sensor_mode=None, zoom=None, shut
     sleep(2)  # Give time to auto gain
     camera.stop_preview()
 
-    current_output = np.empty((resolution[0], resolution[1], 3), dtype=np.uint8)
-    camera.capture(current_output, format='bgr')
-    mean_intensity = current_output.mean()
-    if mean_intensity < 40:
-        print("Increasing gains to max")
-        camera.iso = 800
-        camera.exposure_compensation = 25
-        sleep(2)
+    # current_output = np.empty((resolution[0], resolution[1], 3), dtype=np.uint8)
+    # camera.capture(current_output, format='bgr')
+    # mean_intensity = current_output.mean()
+    # if mean_intensity < 40:
+    #     print("Increasing gains to max")
+    #     camera.iso = 800
+    #     camera.exposure_compensation = 25
+    #     sleep(2)
 
     CameraTools.get_camera_settings(camera)
     return camera

@@ -67,7 +67,7 @@ class PeriodicSaver:
 
 
 def setup_logger():
-    log_dir = "/home/pi/Log/"
+    log_dir = "/home/pi/Logs/"
     os.makedirs(log_dir, exist_ok=True)
     logging.basicConfig(filename=log_dir + 'tracker.log',
                         format='%(asctime)s | %(module)s | %(levelname)s | %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
