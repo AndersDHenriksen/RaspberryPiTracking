@@ -81,6 +81,8 @@ def ball_finder(current_image, prior_image, u_min=None, u_max=None, v_min=None, 
     # 3. sanity check pixel distribution
     inner_length = np.linalg.norm((side_lengths - expected_ball_width).clip(min=0))
     expected_size = int(expected_ball_width * inner_length + expected_area)
+    if difference_ball.size < expected_size:
+        return None
     threshold = np.sort(difference_ball.ravel())[-expected_size]
     bw_ball = difference_ball > threshold
     track_widths = bw_ball.sum(axis=side_lengths.argmax())[expected_ball_width//2:-expected_ball_width//2]
