@@ -5,7 +5,7 @@ from datetime import timedelta
 
 def get_uptime():
     with open('/proc/uptime', 'r') as f:
-        uptime_seconds = int(f.readline().split()[0])
+        uptime_seconds = int(float(f.readline().split()[0]))
     return uptime_seconds
 
 
@@ -22,9 +22,9 @@ def get_acquire_fps(video, wait_time=5):
 
 
 def get_analysis_fps(perioddic_saver, wait_time=5):
-    pre_count = perioddic_saver.count
+    pre_count = perioddic_saver.counter
     sleep(wait_time)
-    post_count = perioddic_saver.count
+    post_count = perioddic_saver.counter
     return (post_count - pre_count) / wait_time
 
 
