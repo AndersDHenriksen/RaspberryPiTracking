@@ -23,7 +23,7 @@ class PeriodicSaver:
         self.next_save_time = self._get_next_save_time()
 
     def _get_next_save_time(self):
-        existing_logs = os.listdir(self.periodic_save_dir)
+        existing_logs = sorted(os.listdir(self.periodic_save_dir))
         if len(existing_logs) == 0:
             return datetime.now()
         last_save_time = datetime.strptime(existing_logs[-1], "%Y%m%d_%H%M%S.tar")
@@ -63,7 +63,7 @@ class PeriodicSaver:
                 os.remove(save_path_name + ext)
 
         # Remove of too old log tars
-        existing_logs = os.listdir(self.periodic_save_dir)
+        existing_logs = sorted(os.listdir(self.periodic_save_dir))
         for file in existing_logs[:-50]:
             os.remove(self.periodic_save_dir + file)
 
