@@ -218,7 +218,8 @@ def start_rpi_tracker(debug=False):
     try:
         analyze_video(video_stream)
     except Exception as e:
-        logging.exception("Exception occurred")
+        logging.exception("\nException occurred")
+        print(e)
     finally:
         print("Tracker stopped.")
         video_stream.stop()
