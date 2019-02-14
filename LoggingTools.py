@@ -8,12 +8,13 @@ import SystemTools
 import json
 import threading
 import logging
+from fractions import Fraction
 
 
 class PeriodicSaver:
 
     def __init__(self, video):
-        self.periodic_save_dir = '/home/pi/Logs/PeriodicInfo'
+        self.periodic_save_dir = '/home/pi/Logs/PeriodicInfo/'
         os.makedirs(self.periodic_save_dir, exist_ok=True)
         self.video = video
         self.camera = video.camera
@@ -23,8 +24,9 @@ class PeriodicSaver:
 
     def _get_next_save_time(self):
         existing_logs = os.listdir(self.periodic_save_dir)
-        last_file = existing_logs[-1] if len(existing_logs) else '20190101_000000.tar'
-        last_save_time = datetime.strptime(last_file, "%Y%m%d_%H%M%S.tar")
+        if len(existing_logs) == 0:
+            return datetime.now()
+        last_save_time = datetime.strptime(existing_logs[-1], "%Y%m%d_%H%M%S.tar")
         return last_save_time + timedelta(hours=.5)
 
     def __call__(self, idx, image):
@@ -39,7 +41,7 @@ class PeriodicSaver:
         save_thread.start()  # TODO is it ok not to join the thread
 
         # Update next_save_time
-        self.next_save_time + timedelta(hours=.5)
+        self.next_save_time += timedelta(hours=.5)
 
     def _save_log(self, image):
         print("Saving periodic log tar ...")
@@ -52,10 +54,10 @@ class PeriodicSaver:
         system_info = SystemTools.get_system_info(self.video, self)
         json_dict = {'Camera Settings': camera_settings, 'System Info': system_info}
         with open(save_path_name + '.json', 'w') as fp:
-            json.dump(json_dict, fp, sort_keys=True, indent=4)
+            json.dump(json_dict, fp, sort_keys=True, indent=4, cls=ExtendedJsonEncoder)
 
         # Tar
-        with tarfile.open('packages.tar', mode='w') as tar:
+        with tarfile.open(save_path_name + '.tar', mode='w') as tar:
             for ext in [".png", ".json"]:
                 tar.add(save_path_name + ext)
                 os.remove(save_path_name + ext)
@@ -64,6 +66,14 @@ class PeriodicSaver:
         existing_logs = os.listdir(self.periodic_save_dir)
         for file in existing_logs[:-50]:
             os.remove(self.periodic_save_dir + file)
+
+
+class ExtendedJsonEncoder(json.JSONEncoder):
+    def default(self, entry):
+        if isinstance(entry, Fraction):
+            return str(entry)
+        else:
+            super().default(self, entry)
 
 
 def setup_logger():
