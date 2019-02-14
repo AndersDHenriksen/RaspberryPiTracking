@@ -15,13 +15,13 @@ def time_stamp():
 
 
 def initiate_camera(resolution=None, fps=None, sensor_mode=None, zoom=None, shutter_speed=None):
-    resolution = resolution or (800, 450)
+    resolution = resolution or (800, 448)
     framerate = fps or 90
     sensor_mode = sensor_mode or 6
     zoom6 = 0.5 - resolution[0] / 2560, 0.5 - resolution[1] / 1440, resolution[0] / 1280, resolution[1] / 720
     zoom = zoom or (zoom6 if sensor_mode == 6 else (0, 0, 1, 1))
 
-    assert resolution[0] * 9 == resolution[1] * 16, "Resolution must 16:9"
+    assert resolution[0] % 32 == 0 and resolution[1] % 16 == 0
     camera = PiCamera(resolution=resolution, framerate=framerate, sensor_mode=sensor_mode)
     camera.zoom = zoom
     if shutter_speed is not None:
