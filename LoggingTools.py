@@ -59,7 +59,7 @@ class PeriodicSaver:
         # Tar
         with tarfile.open(save_path_name + '.tar', mode='w') as tar:
             for ext in [".png", ".json"]:
-                tar.add(save_path_name + ext)
+                tar.add(save_path_name + ext, arcname=(save_path_name + ext).split("/")[-1])
                 os.remove(save_path_name + ext)
 
         # Remove of too old log tars

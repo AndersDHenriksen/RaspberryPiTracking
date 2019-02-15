@@ -83,7 +83,7 @@ class RingBuffer(PiRGBAnalysis):
         with self.thread_lock:
             self.insert_idx = (self.insert_idx + 1) % self.buffer_size
             self.newest_frame_buffer_index += 1
-            self.index_ring_buffer[self.insert_idx] = self.newest_frame_buffer_index + 1
+            self.index_ring_buffer[self.insert_idx] = self.newest_frame_buffer_index
             self.frame_ring_buffer[self.insert_idx] = array
             self.timestamp_ring_buffer[self.insert_idx] = datetime.now().isoformat()  # Alternative utcnow().isoformat()
             self.newest_frame_yielded = False
