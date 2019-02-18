@@ -41,7 +41,7 @@ class PeriodicSaver:
         save_thread.start()  # TODO is it ok not to join the thread
 
         # Update next_save_time
-        self.next_save_time += timedelta(hours=.5)
+        self.next_save_time = datetime.now() + timedelta(hours=.5)
 
     def _save_log(self, image):
         print("Saving periodic log tar ...")
