@@ -72,7 +72,7 @@ class RingBuffer(PiRGBAnalysis):
         with self.thread_lock:
             if not hasattr(self, 'frame_ring_buffer'):
                 resolution = self.camera.resolution
-                self.frame_ring_buffer = np.zeros((self.buffer_size, resolution[1], resolution[0], 3), dtype=np.uint8)
+                self.frame_ring_buffer = np.zeros((self.buffer_size, resolution[1], resolution[0], 3), dtype=np.uint8)  #TODO this should just be a list so it copies by ref!
             self.insert_idx = 0
             self.index_ring_buffer = np.zeros(self.buffer_size, dtype=np.int)
             self.timestamp_ring_buffer = self.buffer_size * [None]
