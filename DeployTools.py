@@ -1,13 +1,15 @@
 from __future__ import print_function
-import time
 import os
-import threading
+import time
+import socket
 import paramiko
+import threading
 from scp import SCPClient
 
-rpi_ip = "192.168.2.184" #"192.168.16.118"
+rpi_hostname = 'raspberrypi.local'
 rpi_user = "pi"
-rpi_password = "trackman"
+rpi_password = ""
+rpi_ip = socket.gethostbyname(rpi_hostname)
 
 
 def createSSHClient(server, user, password, port=22):
