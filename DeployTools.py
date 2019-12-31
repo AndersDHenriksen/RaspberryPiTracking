@@ -3,6 +3,7 @@ import os
 import time
 import socket
 import paramiko
+import platform
 import threading
 from scp import SCPClient
 
@@ -12,7 +13,11 @@ rpi_password = ""
 rpi_ip = socket.gethostbyname(rpi_hostname)
 
 
-def createSSHClient(server, user, password, port=22):
+def running_on_rpi():
+    return platform.uname()[4][:3] == 'arm'
+
+
+def create_ssh_client(server, user, password, port=22):
     client = paramiko.SSHClient()
     client.load_system_host_keys()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -35,7 +40,7 @@ def home():
 
 
 def ssh(command, silent=False, keep_alive_duration=None):
-    ssh = createSSHClient(rpi_ip, rpi_user, rpi_password)
+    ssh = create_ssh_client(rpi_ip, rpi_user, rpi_password)
     ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command(command, get_pty=True)
     if silent:
         return ssh_stdin, ssh_stdout, ssh_stderr
@@ -55,13 +60,13 @@ def ssh(command, silent=False, keep_alive_duration=None):
 
 
 def upload_dir_simple(local_path, remote_path, recursive=True):
-    ssh = createSSHClient(rpi_ip, rpi_user, rpi_password)
+    ssh = create_ssh_client(rpi_ip, rpi_user, rpi_password)
     with SCPClient(ssh.get_transport()) as scp:
         scp.put(files=local_path, remote_path=remote_path, recursive=recursive)
 
 
 def upload_dir(local_path, remote_path, recursive=True, hidden_files=False):
-    ssh = createSSHClient(rpi_ip, rpi_user, rpi_password)
+    ssh = create_ssh_client(rpi_ip, rpi_user, rpi_password)
     folders = []
     with SCPClient(ssh.get_transport()) as scp:
         for element in os.listdir(local_path):
@@ -76,7 +81,7 @@ def upload_dir(local_path, remote_path, recursive=True, hidden_files=False):
 
 
 def download_dir(remote_path, local_path, clear_afterwards=False):
-    ssh = createSSHClient(rpi_ip, rpi_user, rpi_password)
+    ssh = create_ssh_client(rpi_ip, rpi_user, rpi_password)
     with SCPClient(ssh.get_transport()) as scp:
         scp.get(remote_path=remote_path, local_path=local_path, recursive=True)
     if clear_afterwards:
@@ -86,7 +91,7 @@ def download_dir(remote_path, local_path, clear_afterwards=False):
 def clear_dir(remote_path):
     if remote_path[-1] != '/':
         remote_path += '/'
-    ssh = createSSHClient(rpi_ip, rpi_user, rpi_password)
+    ssh = create_ssh_client(rpi_ip, rpi_user, rpi_password)
     with ssh.open_sftp() as sftp:
         files_to_remove = sftp.listdir(path=remote_path)
         for delete_file in files_to_remove:
@@ -94,8 +99,8 @@ def clear_dir(remote_path):
 
 
 def sync_project():
-    local_dir = home() + '/Projects/RaspberryPiTracking/'
-    remote_dir = '/home/pi/BallDetector'
+    local_dir = os.path.dirname(os.path.abspath(__file__))
+    remote_dir = '/home/pi/pi_tools'
     print("Syncing {} to {}".format(local_dir, remote_dir))
     upload_dir(local_dir, remote_dir, recursive=False)
 
