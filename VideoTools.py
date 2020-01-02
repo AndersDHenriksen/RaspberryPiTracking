@@ -8,6 +8,7 @@ from time import sleep, strftime, time
 import numpy as np
 import os
 import functools
+import DeployTools
 
 
 def time_stamp():
@@ -15,13 +16,14 @@ def time_stamp():
 
 
 def initiate_camera(resolution=None, fps=None, sensor_mode=None, zoom=None, shutter_speed=None):
-    resolution = resolution or (800, 448)
+    resolution = resolution or ((800, 448) if sensor_mode is None else None)
     framerate = fps or 90
     sensor_mode = sensor_mode or 6
-    zoom6 = 0.5 - resolution[0] / 2560, 0.5 - resolution[1] / 1440, resolution[0] / 1280, resolution[1] / 720
-    zoom = zoom or (zoom6 if sensor_mode == 6 else (0, 0, 1, 1))
+    if sensor_mode == 6 and zoom is None:
+        zoom = 0.5 - resolution[0] / 2560, 0.5 - resolution[1] / 1440, resolution[0] / 1280, resolution[1] / 720
+    zoom = zoom or (0, 0, 1, 1)
 
-    assert resolution[0] % 32 == 0 and resolution[1] % 16 == 0
+    assert resolution is None or (resolution[0] % 16 == 0 and resolution[1] % 16 == 0)
     camera = PiCamera(resolution=resolution, framerate=framerate, sensor_mode=sensor_mode)
     camera.zoom = zoom
     if shutter_speed is not None:
@@ -71,8 +73,8 @@ def see_preview(duration=5):
 
 
 def acquire_image():
-    with initiate_camera() as camera:
-        camera.capture('/home/pi/Pictures/image_' + time_stamp() + '.png')
+    with initiate_camera(resolution=(3280, 2464), sensor_mode=2, fps=1) as camera:
+        camera.capture('/home/pi/Pictures/image_' + time_stamp() + '.jpg')
 
 
 def acquire_video_clip(duration=8, compress=True):
@@ -130,7 +132,15 @@ def acquire_numpy_array(duration=8):
     os.makedirs(save_dir)
     np.save(save_dir + '/data.npy', frames)
 
-
 # Other ideas:
 # https://picamera.readthedocs.io/en/release-1.13/recipes2.html#splitting-to-from-a-circular-stream
 # https://picamera.readthedocs.io/en/release-1.13/api_streams.html
+
+
+if __name__ == "__main__":
+    if DeployTools.running_on_rpi():
+        acquire_image()
+    else:
+        DeployTools.sync_project()
+        DeployTools.ssh("python3 ~/pi_tools/VideoTools.py")
+        DeployTools.download_dir("/home/pi/Pictures", DeployTools.home() + os.sep + "RaspberryPi")

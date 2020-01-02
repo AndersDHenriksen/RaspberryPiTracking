@@ -23,6 +23,7 @@ sudo raspi-config # -> 1 Change password for current user
 sudo raspi-config # -> 2 -> N1 Hostname   # Change hostname
 sudo raspi-config # -> 5 Interfacing Options -> P1 Camera
 sudo raspi-config # -> 7 Advanced Options -> A1 Expand Filesystem
+sudo raspi-config # -> 7 Advanced Options -> A3 Memory Split -> 256  # For 8 MP images
 sudo reboot
 
 # -- RASPI-CONFIG WIFI
